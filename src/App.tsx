@@ -12,7 +12,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 
 import logoPrimary from "./assets/sitecart-logo.png";
-import productRender from "./assets/sitecart-product.png";
+import productRender640 from "./assets/sitecart-product-640.webp";
+import productRender1280 from "./assets/sitecart-product-1280.webp";
+import productRender1920 from "./assets/sitecart-product-1920.webp";
+import productRenderJpg from "./assets/sitecart-product-1280.jpg";
+
+const productSrcSet = `${productRender640} 640w, ${productRender1280} 1280w, ${productRender1920} 1920w`;
 
 type InterestedModel = "Core" | "Pro" | "Custom";
 
@@ -176,7 +181,18 @@ function SitecartLanding() {
             className="relative"
           >
             <div className="absolute inset-0 bg-primary/10 blur-[100px] rounded-full"></div>
-            <img src={productRender} alt="SITECART Product" className="relative z-10 w-full h-auto object-contain drop-shadow-2xl scale-110" />
+            <img
+              src={productRenderJpg}
+              srcSet={productSrcSet}
+              sizes="(min-width: 1024px) 600px, 100vw"
+              alt="SITECART Product"
+              width={1402}
+              height={1122}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              className="relative z-10 w-full h-auto object-contain drop-shadow-2xl scale-110"
+            />
           </motion.div>
         </div>
       </section>
@@ -231,7 +247,17 @@ function SitecartLanding() {
           </div>
 
           <div className="relative max-w-5xl mx-auto mt-12">
-            <img src={productRender} alt="SITECART Detail" className="w-full h-auto" />
+            <img
+              src={productRenderJpg}
+              srcSet={productSrcSet}
+              sizes="(min-width: 1024px) 1024px, 100vw"
+              alt="SITECART Detail"
+              width={1402}
+              height={1122}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-auto"
+            />
 
             {/* Callouts overlaid on the cart image — hidden on small screens, see stacked list below */}
             <div className="hidden md:block absolute top-[30%] left-[20%]">
