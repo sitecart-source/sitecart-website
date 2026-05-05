@@ -151,13 +151,6 @@ function SitecartLanding() {
       <section id="hero" className="pt-24 pb-12 md:pt-40 md:pb-32 container mx-auto px-4 md:px-6 relative clip-angle">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="z-10">
-            <motion.div variants={fadeIn} className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-primary/10 text-primary border border-primary/20 mb-6 text-sm font-bold uppercase tracking-wider">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-              Prototype builds now open. Limited early access available.
-            </motion.div>
             <motion.h1 variants={fadeIn} className="text-5xl md:text-7xl font-black leading-tight mb-6 text-white uppercase tracking-tight">
               The Mobile Jobsite Hub Built for <span className="text-primary">Australian Trades</span>
             </motion.h1>
