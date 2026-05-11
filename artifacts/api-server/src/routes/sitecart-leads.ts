@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { z } from "zod";
 import { Resend } from "resend";
+import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
@@ -129,7 +130,7 @@ router.post("/sitecart-leads", async (req: Request, res: Response) => {
   const from = process.env.SITECART_LEAD_FROM_EMAIL;
 
   if (!apiKey || !to || !from) {
-    req.log.error("[sitecart-leads] Missing env: RESEND_API_KEY / SITECART_LEAD_TO_EMAIL / SITECART_LEAD_FROM_EMAIL");
+    logger.error("[sitecart-leads] Missing env: RESEND_API_KEY / SITECART_LEAD_TO_EMAIL / SITECART_LEAD_FROM_EMAIL");
     return res.status(503).json({ error: "Email service is not configured" });
   }
 
@@ -145,12 +146,12 @@ router.post("/sitecart-leads", async (req: Request, res: Response) => {
       html: buildHtml(lead),
     });
     if (error) {
-      req.log.error({ error }, "[sitecart-leads] Resend error");
+      logger.error({ error }, "[sitecart-leads] Resend error");
       return res.status(502).json({ error: "Failed to send registration" });
     }
     return res.status(200).json({ ok: true });
   } catch (err) {
-    req.log.error({ err }, "[sitecart-leads] Unexpected error");
+    logger.error({ err }, "[sitecart-leads] Unexpected error");
     return res.status(500).json({ error: "Internal server error" });
   }
 });
