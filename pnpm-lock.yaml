@@ -406,10 +406,6 @@ importers:
         version: 3.25.76
 
   artifacts/sitecart:
-    dependencies:
-      resend:
-        specifier: ^6.12.3
-        version: 6.12.3
     devDependencies:
       '@hookform/resolvers':
         specifier: ^3.10.0
