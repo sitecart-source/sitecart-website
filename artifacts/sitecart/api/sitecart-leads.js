@@ -12,24 +12,30 @@ const LeadSchema = z.object({
   useCase: z.string().trim().max(2000).optional(),
 });
 
-type Lead = z.infer<typeof LeadSchema>;
-
 const RECENT_WINDOW_MS = 24 * 60 * 60 * 1000;
-const recentEmails = new Map<string, number>();
+const recentEmails = new Map();
 
-function isDuplicate(email: string): boolean {
+function isDuplicate(email) {
   const now = Date.now();
+
   for (const [key, ts] of recentEmails) {
-    if (now - ts > RECENT_WINDOW_MS) recentEmails.delete(key);
+    if (now - ts > RECENT_WINDOW_MS) {
+      recentEmails.delete(key);
+    }
   }
+
   const last = recentEmails.get(email);
-  if (last && now - last < RECENT_WINDOW_MS) return true;
+
+  if (last && now - last < RECENT_WINDOW_MS) {
+    return true;
+  }
+
   recentEmails.set(email, now);
   return false;
 }
 
-function escapeHtml(s: string): string {
-  return s
+function escapeHtml(s) {
+  return String(s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -37,14 +43,14 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function buildSubject(lead: Lead): string {
+function buildSubject(lead) {
   return `[${lead.interestedModel}] Early access — ${lead.business}`;
 }
 
-function buildText(lead: Lead): string {
+function buildText(lead) {
   const lines = [
-    `New SITECART early-access lead`,
-    ``,
+    "New SITECART early-access lead",
+    "",
     `Interested model: ${lead.interestedModel}`,
     `Name:             ${lead.name}`,
     `Business:         ${lead.business}`,
@@ -53,18 +59,21 @@ function buildText(lead: Lead): string {
     `Phone:            ${lead.phone}`,
     `Email:            ${lead.email}`,
   ];
+
   if (lead.useCase) {
-    lines.push(``, `How they would use SITECART:`, lead.useCase);
+    lines.push("", "How they would use SITECART:", lead.useCase);
   }
-  lines.push(``, `Reply to this email to write back to ${lead.name} directly.`);
+
+  lines.push("", `Reply to this email to write back to ${lead.name} directly.`);
   return lines.join("\n");
 }
 
-function buildHtml(lead: Lead): string {
+function buildHtml(lead) {
   const accent = "#a3e635";
   const useCaseBlock = lead.useCase
     ? `<tr><td style="padding:14px 18px;"><p style="margin:0 0 6px;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.5);text-transform:uppercase;">How they would use SITECART</p><p style="margin:0;font-size:14px;color:rgba(255,255,255,0.9);line-height:1.6;white-space:pre-wrap;">${escapeHtml(lead.useCase)}</p></td></tr>`
     : "";
+
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
@@ -100,27 +109,36 @@ function buildHtml(lead: Lead): string {
 </body></html>`;
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const raw = (req.body ?? {}) as Record<string, unknown>;
+  const raw = req.body ?? {};
 
   const honeypot = typeof raw.company === "string" ? raw.company.trim() : "";
-  if (honeypot) return res.status(200).json({ ok: true });
+  if (honeypot) {
+    return res.status(200).json({ ok: true });
+  }
+
   const { company: _ignored, ...candidate } = raw;
 
   const parsed = LeadSchema.safeParse(candidate);
+
   if (!parsed.success) {
     const first = parsed.error.issues[0];
     return res.status(400).json({ error: first?.message ?? "Invalid submission" });
   }
 
-  const lead: Lead = { ...parsed.data, email: parsed.data.email.toLowerCase() };
+  const lead = {
+    ...parsed.data,
+    email: parsed.data.email.toLowerCase(),
+  };
 
-  if (isDuplicate(lead.email)) return res.status(200).json({ ok: true, duplicate: true });
+  if (isDuplicate(lead.email)) {
+    return res.status(200).json({ ok: true, duplicate: true });
+  }
 
   const apiKey = process.env.RESEND_API_KEY;
   const to = process.env.SITECART_LEAD_TO_EMAIL;
@@ -132,17 +150,22 @@ export default async function handler(req: any, res: any) {
   }
 
   const resend = new Resend(apiKey);
+
   try {
     const { error } = await resend.emails.send({
-      from, to, replyTo: lead.email,
+      from,
+      to,
+      replyTo: lead.email,
       subject: buildSubject(lead),
       text: buildText(lead),
       html: buildHtml(lead),
     });
+
     if (error) {
       console.error("[sitecart-leads] Resend error", error);
       return res.status(502).json({ error: "Failed to send registration" });
     }
+
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("[sitecart-leads] Unexpected error", err);
